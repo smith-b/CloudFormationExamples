@@ -1,5 +1,5 @@
 {
-    "Description": "This installs a LAMP web server on Amazon Linux 2 using cfn-init to demonstrate how to cfn-init can be used to install various packages using configsets. The insance is added to a target group which is served traffic via an application load balancer. After the stack creates successfully, navigate to the Outputs table of the Stack details page to retrieve the URL to view the web server. Depending on the instance size, the instance might still be registering with the load balancer.",
+    "Description": "This installs a LAMP web server on Amazon Linux 2 using cfn-init to demonstrate how cfn-init can be used to install various packages according to the evaluation of a parameter using configsets. The insance is added to a target group which is served traffic via an application load balancer. After the stack creates successfully, navigate to the Outputs table of the Stack details page to retrieve the URL to view the web server. Depending on the instance size, the instance might still be registering with the load balancer.",
     "Parameters": {
         "InstanceType": {
             "Type": "String",
