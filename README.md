@@ -1,1 +1,1 @@
-This repository contains different CloudFormation templates I wrote to demonstrate some powerful functionality found in CloudFormation.
+This repository contains different CloudFormation templates I wrote to demonstrate some of the powerful functionality found in CloudFormation.
