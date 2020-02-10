@@ -5,4 +5,9 @@ The public-private-2az.json template will create a VPC, two public and two priva
 
 The loadbalanced-ha-asg-sample-ec2-app.json template will create an auto scaling group and launch configuration that bootstraps EC2 instances with different configuration packages according to the evaluation of the "Configuration" parameter. This stack will also create two security groups, an IAM role and instance profile to associate with EC2 instances in the auto scaling group, an application load balancer, listener, and target group.
 
+Launch the templates in the following order:
+
+    1. public-private-2az.json
+    2. loadbalanced-ha-asg-sample-ec2-app.json
+
 There is a very small cost associated with creating these stacks. Review AWS service costs and use the following online calculator to identify a specific number according to your instance size, runtime, and traffic. https://calculator.s3.amazonaws.com/index.html
