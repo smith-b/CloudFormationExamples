@@ -1,0 +1,364 @@
+{
+    "Description": "This installs a LAMP web server on Amazon Linux 2 using cfn-init to demonstrate how to cfn-init can be used to install various packages using configsets. The insance is added to a target group which is served traffic via an application load balancer. After the stack creates successfully, navigate to the Outputs table of the Stack details page to retrieve the URL to view the web server. Depending on the instance size, the instance might still be registering with the load balancer.",
+    "Parameters": {
+        "InstanceType": {
+            "Type": "String",
+            "Description": "This is the instance type for EC2 instances in the ASG",
+            "AllowedValues": [
+                "t2.micro",
+                "t2.medium",
+                "t2.large"
+            ]
+        },
+        "EC2Key": {
+            "Description": "Specify an EC2 KeyPair in the account. This value cannot be empty",
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "Configuration": {
+            "Description": "Specify the packages you want installed on instances in the autoscaling group at launch. In this example you will specify different images for apache. dog, cat, or catdog",
+            "Type": "String",
+            "AllowedValues": [
+                "dog",
+                "cat",
+                "catdog"
+            ]
+        },
+        "EC2Image": {
+            "Description": "This parameter retrieves the most recent Amazon Linux AMI, leave this value as is",
+            "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+            "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
+            "AllowedValues": [
+                "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+            ]
+        }
+    },
+    "Resources": {
+        "ASG": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "dog": [
+                            "dogconfig"
+                        ],
+                        "cat": [
+                            "catconfig"
+                        ],
+                        "catdog": [
+                            "catdogconfig"
+                        ]
+                    },
+                    "dogconfig": {
+                        "commands": {
+                            "1_update": {
+                                "command": "sudo yum update -y"
+                            },
+                            "2_install": {
+                                "command": "sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2"
+                            },
+                            "3_installmaria": {
+                                "command": "sudo yum install -y httpd mariadb-server"
+                            },
+                            "4_dogconfig": {
+                                "command": "sudo echo \"<img src=\"https://vignette.wikia.nocookie.net/catdog/images/9/9c/291px-Dog.gif/revision/latest/scale-to-width-down/340?cb=20190412011135\">\" > /var/www/html/index.html"
+                            },
+                            "5_modifyuserperm": {
+                                "command": "sudo usermod -a -G apache ec2-user"
+                            },
+                            "6_chownwwwtoapache": {
+                                "command": "sudo chown -R ec2-user:apache /var/www"
+                            },
+                            "7_chmodhtml": {
+                                "command": "sudo chmod 2775 /var/www && find /var/www -type d -exec sudo chmod 2775 {} \\;"
+                            },
+                            "8_givepermtowww": {
+                                "command": "find /var/www -type f -exec sudo chmod 0664 {} \\;"
+                            },
+                            "9_configureapache": {
+                                "command": "sudo systemctl start httpd"
+                            }
+                        }
+                    },
+                    "catconfig": {
+                        "commands": {
+                            "1_update": {
+                                "command": "sudo yum update -y"
+                            },
+                            "2_install": {
+                                "command": "sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2"
+                            },
+                            "3_installmaria": {
+                                "command": "sudo yum install -y httpd mariadb-server"
+                            },
+                            "4_catconfig": {
+                                "command": "sudo echo \"<img src=\"https://vignette.wikia.nocookie.net/catdog/images/6/69/274px-Cat.gif/revision/latest/scale-to-width-down/340?cb=20190412011618\">\" > /var/www/html/index.html"
+                            },
+                            "5_modifyuserperm": {
+                                "command": "sudo usermod -a -G apache ec2-user"
+                            },
+                            "6_chownwwwtoapache": {
+                                "command": "sudo chown -R ec2-user:apache /var/www"
+                            },
+                            "7_chmodhtml": {
+                                "command": "sudo chmod 2775 /var/www && find /var/www -type d -exec sudo chmod 2775 {} \\;"
+                            },
+                            "8_givepermtowww": {
+                                "command": "find /var/www -type f -exec sudo chmod 0664 {} \\;"
+                            },
+                            "9_startapache": {
+                                "command": "sudo systemctl start httpd"
+                            }
+                        }
+                    },
+                    "catdogconfig": {
+                        "commands": {
+                            "1_update": {
+                                "command": "sudo yum update -y"
+                            },
+                            "2_install": {
+                                "command": "sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2"
+                            },
+                            "3_installmaria": {
+                                "command": "sudo yum install -y httpd mariadb-server"
+                            },
+                            "4_catdogconfig": {
+                                "command": "sudo echo \"<img src=\"https://upload.wikimedia.org/wikipedia/en/thumb/6/64/CatDog.jpeg/250px-CatDog.jpeg\">\" > /var/www/html/index.html"
+                            },
+                            "5_modifyuserperm": {
+                                "command": "sudo usermod -a -G apache ec2-user"
+                            },
+                            "6_chownwwwtoapache": {
+                                "command": "sudo chown -R ec2-user:apache /var/www"
+                            },
+                            "7_chmodhtml": {
+                                "command": "sudo chmod 2775 /var/www && find /var/www -type d -exec sudo chmod 2775 {} \\;"
+                            },
+                            "8_givepermtowww": {
+                                "command": "find /var/www -type f -exec sudo chmod 0664 {} \\;"
+                            },
+                            "9_startapache": {
+                                "command": "sudo systemctl start httpd"
+                            }
+                        }
+                    }
+                }
+            },
+            "Properties": {
+                "AvailabilityZones": [
+                    {
+                        "Fn::Select": [
+                            "0",
+                            {
+                                "Fn::GetAZs": {
+                                    "Ref": "AWS::Region"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "Fn::Select": [
+                            "1",
+                            {
+                                "Fn::GetAZs": {
+                                    "Ref": "AWS::Region"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "HealthCheckGracePeriod": 15,
+                "HealthCheckType": "ELB",
+                "LaunchConfigurationName": {
+                    "Ref": "LaunchConfig"
+                },
+                "MaxSize": "4",
+                "MinSize": "1",
+                "TargetGroupARNs": [
+                    {
+                        "Ref": "TargetGroup"
+                    }
+                ],
+                "VPCZoneIdentifier": [
+                    {
+                        "Fn::ImportValue": "demoPrivSub1"
+                    },
+                    {
+                        "Fn::ImportValue": "demoPrivSub2"
+                    }
+                ]
+            }
+        },
+        "HostInstanceRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Description": "This is the role used for the EC2 instances launced in the ASG",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ec2.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": {"Fn::Sub": "demohost-${AWS::StackName}"},
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "cloudwatch:*",
+                                        "elasticloadbalancing:*",
+                                        "ec2:*",
+                                        "logs:*"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "HostInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Roles": [
+                    {
+                        "Ref": "HostInstanceRole"
+                    }
+                ]
+            }
+        },
+        "LaunchConfig": {
+            "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "Properties": {
+                "ImageId": {
+                    "Ref": "EC2Image"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "EC2Key"
+                },
+                "IamInstanceProfile": {
+                    "Fn::GetAtt": [
+                        "HostInstanceProfile",
+                        "Arn"
+                    ]
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "HostSg"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/usr/bin/env bash\nset -o errexit\nyum -y update aws-cfn-bootstrap\n/opt/aws/bin/cfn-init -vvv -c ${Configuration} --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}\n/opt/aws/bin/cfn-signal --exit-code $? --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}\n"
+                    }
+                }
+            }
+        },
+        "TargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "Port": 80,
+                "Protocol": "HTTP",
+                "HealthCheckIntervalSeconds": 30,
+                "HealthyThresholdCount": 2,
+                "UnhealthyThresholdCount": 4,
+                "Matcher": {
+                    "HttpCode": "200-399"
+                },
+                "VpcId": {
+                    "Fn::ImportValue": "demoVPC"
+                }
+            }
+        },
+        "ApplicationLoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Subnets": [
+                    {
+                        "Fn::ImportValue": "demoPubSub2"
+                    },
+                    {
+                        "Fn::ImportValue": "demoPubSub1"
+                    }
+                ],
+                "SecurityGroups": [
+                    {
+                        "Ref": "LoadbalancerSG"
+                    }
+                ]
+            }
+        },
+        "InsecureListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "TargetGroup"
+                        }
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "ApplicationLoadBalancer"
+                },
+                "Port": 80,
+                "Protocol": "HTTP"
+            }
+        },
+        "HostSg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "This is the security group assocaited with the Target EC2 instances",
+                "VpcId": {
+                    "Fn::ImportValue": "demoVPC"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "SourceSecurityGroupId": {
+                            "Ref": "LoadbalancerSG"
+                        },
+                        "ToPort": 80,
+                        "FromPort": 80
+                    }
+                ]
+            }
+        },
+        "LoadbalancerSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "This is the security group assocaited with the ALB",
+                "VpcId": {
+                    "Fn::ImportValue": "demoVPC"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "CidrIp": "0.0.0.0/0",
+                        "ToPort": 80,
+                        "FromPort": 80
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "LoadBalancerUrl": {
+            "Description": "Enter the URL into a web browser to view the application packages you installed. In this case, cat, dog, or catdog",
+            "Value": {"Fn::GetAtt": ["ApplicationLoadBalancer","DNSName"]}
+        }
+    }
+}

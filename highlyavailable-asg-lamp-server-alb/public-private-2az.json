@@ -1,0 +1,174 @@
+{
+    "Description": "This stack creates 2 public and 2 private subnets across two AZ's with a NAT Gateway to provide out bound internet access to the private subnets",
+    "Parameters": {
+        "VpcCidr": {
+            "Description": "This Cidr will be used to create Subnets within the VPC",
+            "Type": "String",
+            "Default": "10.0.0.0/16",
+            "MinLength": "11",
+            "MaxLength": "11"
+        }
+    },
+    "Resources": {
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": { "Ref": "VpcCidr"},
+                "EnableDnsHostnames": true
+            }
+        },
+        "PubSub1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": { "Fn::Select": [
+                    "0", {"Fn::GetAZs": {"Ref": "AWS::Region"}}
+                ]},
+                "CidrBlock": {"Fn::Select": ["0", {"Fn::Cidr": [ {"Fn::GetAtt": [ "VPC", "CidrBlock"]}, 1, 8]}]},
+                "VpcId": {"Ref": "VPC"}
+            }
+        },
+        "PubSub2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": { "Fn::Select": [
+                    "1", {"Fn::GetAZs": {"Ref": "AWS::Region"}}
+                ]},
+                "CidrBlock": {"Fn::Select": ["1", {"Fn::Cidr": [ {"Fn::GetAtt": [ "VPC", "CidrBlock"]}, 2, 8]}]},
+                "VpcId": {"Ref": "VPC"}
+            }
+        },
+        "PrivSub1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": { "Fn::Select": [
+                    "0", {"Fn::GetAZs": {"Ref": "AWS::Region"}}
+                ]},
+                "CidrBlock": {"Fn::Select": ["2", {"Fn::Cidr": [ {"Fn::GetAtt": [ "VPC", "CidrBlock"]}, 3, 8]}]},
+                "VpcId": {"Ref": "VPC"}
+            }
+        },
+        "PrivSub2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": { "Fn::Select": [
+                    "1", {"Fn::GetAZs": {"Ref": "AWS::Region"}}
+                ]},
+                "CidrBlock": {"Fn::Select": ["3", {"Fn::Cidr": [ {"Fn::GetAtt": [ "VPC", "CidrBlock"]}, 4, 8]}]},
+                "VpcId": {"Ref": "VPC"}
+            }
+        },
+        "PrivTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": { "Ref": "VPC"}
+            }
+        },
+        "PubTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": { "Ref": "VPC"}
+            }
+        },
+        "PrivToNAT": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {"Ref": "PrivTable"},
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": {"Ref": "NAT"}
+            }
+        },
+        "PubToIGW": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "RouteTableId": {"Ref": "PubTable"},
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {"Ref": "IGW"}
+            }
+        },
+        "PrivAssociation1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {"Ref": "PrivTable"},
+                "SubnetId": {"Ref": "PrivSub1"}
+            }
+        },
+        "PrivAssociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {"Ref": "PrivTable"},
+                "SubnetId": {"Ref": "PrivSub2"}
+            }
+        },
+        "PubAssociation1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {"Ref": "PubTable"},
+                "SubnetId": {"Ref": "PubSub1"}
+            }
+        },
+        "PubAssociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {"Ref": "PubTable"},
+                "SubnetId": {"Ref": "PubSub2"}
+            }
+        },
+        "IGWAssociation": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "InternetGatewayId": { "Ref": "IGW" },
+                "VpcId": {"Ref": "VPC"}
+            }
+        },
+        "IGW": {
+            "Type": "AWS::EC2::InternetGateway"
+        },
+        "NAT": {
+            "Type": "AWS::EC2::NatGateway",
+            "Properties": {
+                "AllocationId": {"Fn::GetAtt": [ "NATEIP", "AllocationId" ]},
+                "SubnetId": {"Ref": "PubSub1"}
+            }
+        },
+        "NATEIP": {
+            "Type": "AWS::EC2::EIP"
+        }
+    },
+    "Outputs": {
+        "PubSub1output": {
+            "Description": "Public Subnet that contains the NAT Gateway",
+            "Value": {"Ref": "PubSub1"},
+            "Export": {
+                "Name": { "Fn::Sub": "demoPubSub1" }
+            }
+        },
+        "PubSub2output": {
+            "Description": "Public Subnet",
+            "Value": {"Ref": "PubSub2"},
+            "Export": {
+                "Name": { "Fn::Sub": "demoPubSub2" }
+            }
+        },
+        "PrivSub1output": {
+            "Description": "Private Subnet",
+            "Value": {"Ref": "PrivSub1"},
+            "Export": {
+                "Name": { "Fn::Sub": "demoPrivSub1" }
+            }
+        },
+        "PrivSub2output": {
+            "Description": "Private Subnet",
+            "Value": {"Ref": "PrivSub2"},
+            "Export": {
+                "Name": { "Fn::Sub": "demoPrivSub2" }
+            }
+        },
+        "VPCoutput": {
+            "Description": "Id of the VPC",
+            "Value": {"Ref": "VPC"},
+            "Export": {
+                "Name": { "Fn::Sub": "demoVPC" }
+            }
+        }
+    }
+}
