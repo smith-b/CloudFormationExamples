@@ -5,8 +5,8 @@
             "Description": "This Cidr will be used to create Subnets within the VPC",
             "Type": "String",
             "Default": "10.0.0.0/16",
-            "MinLength": "11",
-            "MaxLength": "11"
+            "MinLength": "10",
+            "MaxLength": "15"
         }
     },
     "Resources": {
